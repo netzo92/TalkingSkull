@@ -45,8 +45,9 @@ Copy `.env.example` to `.env` (or export variables) and provide your LiveKit cre
 
 ## GCP deployment pipeline
 
-Two Cloud Build definitions are provided:
+Three Cloud Build definitions are provided:
 
+- `gcp/cloudbuild.yaml` orchestrates a full deployment. It builds and deploys the backend first (including LiveKit configuration), then compiles the frontend bundle, builds the container image, and deploys it with the backend URL injected via `_BACKEND_URL`.
 - `gcp/cloudbuild-backend.yaml` builds the backend container, pushes it to Artifact Registry, and deploys to Cloud Run. It expects substitutions for LiveKit credentials and Secret Manager references.
 - `gcp/cloudbuild-frontend.yaml` installs dependencies, builds the React bundle, pushes the container, and deploys it to Cloud Run with the backend URL injected via `_BACKEND_URL`.
 
@@ -59,7 +60,7 @@ Two Cloud Build definitions are provided:
 
 ### Trigger examples
 
-Create a trigger for each `cloudbuild-*.yaml` file and set the corresponding substitutions:
+Create a trigger for the combined pipeline (or one for each service-specific `cloudbuild-*.yaml` file) and set the corresponding substitutions:
 
 - `_BACKEND_URL` – Cloud Run URL for the backend service.
 - `_LIVEKIT_HOST` – Public URL of your LiveKit server.

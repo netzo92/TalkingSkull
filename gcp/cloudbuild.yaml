@@ -1,0 +1,93 @@
+steps:
+  - name: gcr.io/cloud-builders/docker
+    id: Build backend image
+    args:
+      [
+        'build',
+        '-t',
+        '$LOCATION-docker.pkg.dev/$PROJECT_ID/$REPO_NAME/backend:$COMMIT_SHA',
+        'backend'
+      ]
+
+  - name: gcr.io/cloud-builders/docker
+    id: Push backend image
+    args:
+      [
+        'push',
+        '$LOCATION-docker.pkg.dev/$PROJECT_ID/$REPO_NAME/backend:$COMMIT_SHA'
+      ]
+
+  - name: gcr.io/google.com/cloudsdktool/cloud-sdk
+    id: Deploy backend service
+    entrypoint: gcloud
+    args:
+      [
+        'run',
+        'deploy',
+        'talkingskull-backend',
+        '--image=$LOCATION-docker.pkg.dev/$PROJECT_ID/$REPO_NAME/backend:$COMMIT_SHA',
+        '--region=$LOCATION',
+        '--platform=managed',
+        '--allow-unauthenticated',
+        '--set-env-vars',
+        'LIVEKIT_HOST=${_LIVEKIT_HOST}',
+        'LIVEKIT_TOKEN_TTL=${_LIVEKIT_TOKEN_TTL}',
+        '--set-secrets',
+        'LIVEKIT_API_KEY=${_LIVEKIT_API_KEY}:latest',
+        'LIVEKIT_API_SECRET=${_LIVEKIT_API_SECRET}:latest'
+      ]
+
+  - name: gcr.io/cloud-builders/npm
+    id: Install frontend dependencies
+    dir: frontend
+    args: ['install']
+
+  - name: gcr.io/cloud-builders/npm
+    id: Build frontend bundle
+    dir: frontend
+    args: ['run', 'build']
+
+  - name: gcr.io/cloud-builders/docker
+    id: Build frontend image
+    args:
+      [
+        'build',
+        '-t',
+        '$LOCATION-docker.pkg.dev/$PROJECT_ID/$REPO_NAME/frontend:$COMMIT_SHA',
+        'frontend'
+      ]
+
+  - name: gcr.io/cloud-builders/docker
+    id: Push frontend image
+    args:
+      [
+        'push',
+        '$LOCATION-docker.pkg.dev/$PROJECT_ID/$REPO_NAME/frontend:$COMMIT_SHA'
+      ]
+
+  - name: gcr.io/google.com/cloudsdktool/cloud-sdk
+    id: Deploy frontend service
+    entrypoint: gcloud
+    args:
+      [
+        'run',
+        'deploy',
+        'talkingskull-frontend',
+        '--image=$LOCATION-docker.pkg.dev/$PROJECT_ID/$REPO_NAME/frontend:$COMMIT_SHA',
+        '--region=$LOCATION',
+        '--allow-unauthenticated',
+        '--platform=managed',
+        '--set-env-vars',
+        'VITE_API_BASE=${_BACKEND_URL}'
+      ]
+images:
+  - '$LOCATION-docker.pkg.dev/$PROJECT_ID/$REPO_NAME/backend:$COMMIT_SHA'
+  - '$LOCATION-docker.pkg.dev/$PROJECT_ID/$REPO_NAME/frontend:$COMMIT_SHA'
+substitutions:
+  _BACKEND_URL: https://talkingskull-backend-<region>-a.run.app
+  _LIVEKIT_HOST: https://your-livekit-host
+  _LIVEKIT_TOKEN_TTL: '3600'
+  _LIVEKIT_API_KEY: projects/PROJECT_ID/secrets/livekit-api-key
+  _LIVEKIT_API_SECRET: projects/PROJECT_ID/secrets/livekit-api-secret
+options:
+  logging: CLOUD_LOGGING_ONLY
