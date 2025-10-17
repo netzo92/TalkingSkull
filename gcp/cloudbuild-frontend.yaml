@@ -1,0 +1,50 @@
+steps:
+  - name: gcr.io/cloud-builders/npm
+    id: Install dependencies
+    dir: frontend
+    args: ['install']
+
+  - name: gcr.io/cloud-builders/npm
+    id: Build frontend
+    dir: frontend
+    args: ['run', 'build']
+
+  - name: gcr.io/cloud-builders/docker
+    id: Build container image
+    args:
+      [
+        'build',
+        '-t',
+        '$LOCATION-docker.pkg.dev/$PROJECT_ID/$REPO_NAME/frontend:$COMMIT_SHA',
+        'frontend'
+      ]
+
+  - name: gcr.io/cloud-builders/docker
+    id: Push container image
+    args:
+      [
+        'push',
+        '$LOCATION-docker.pkg.dev/$PROJECT_ID/$REPO_NAME/frontend:$COMMIT_SHA'
+      ]
+
+  - name: gcr.io/google.com/cloudsdktool/cloud-sdk
+    id: Deploy to Cloud Run
+    entrypoint: gcloud
+    args:
+      [
+        'run',
+        'deploy',
+        'talkingskull-frontend',
+        '--image=$LOCATION-docker.pkg.dev/$PROJECT_ID/$REPO_NAME/frontend:$COMMIT_SHA',
+        '--region=$LOCATION',
+        '--allow-unauthenticated',
+        '--platform=managed',
+        '--set-env-vars',
+        'VITE_API_BASE=${_BACKEND_URL}'
+      ]
+images:
+  - '$LOCATION-docker.pkg.dev/$PROJECT_ID/$REPO_NAME/frontend:$COMMIT_SHA'
+substitutions:
+  _BACKEND_URL: https://talkingskull-backend-<region>-a.run.app
+options:
+  logging: CLOUD_LOGGING_ONLY
