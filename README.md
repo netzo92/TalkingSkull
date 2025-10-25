@@ -1,12 +1,13 @@
 # TalkingSkull Platform
 
-This repository contains a React + LiveKit frontend and a Python FastAPI backend ready for deployment on Google Cloud Run via Cloud Build.
+Talking Skull combines a polished marketing presence with a LiveKit-powered interview portal. The stack ships as a pair of containerized services ready for Google Cloud Run.
 
 ## Project structure
 
-- `frontend/` – Vite-powered React client that connects to LiveKit via the backend.
-- `backend/` – FastAPI service that issues LiveKit access tokens.
+- `frontend/` – Vite-powered React client that renders the landing page, feature highlights, and embedded LiveKit portal.
+- `backend/` – FastAPI service that issues LiveKit access tokens and orchestrates future interview workflows.
 - `gcp/` – Cloud Build configurations for automated container builds and deployments.
+- `docs/` – Architecture reference material.
 - `AGENTS.md` – Coding guidelines.
 
 ## Frontend
@@ -24,6 +25,12 @@ To build the production bundle locally:
 ```bash
 npm run build
 ```
+
+### Landing page overview
+
+* `src/App.tsx` structures the hero, feature grid, architecture summary, and interview portal.
+* Global styles live in `src/styles.css` and follow a gradient-rich aesthetic tuned for marketing + app-shell hybrids.
+* The join form calls `src/api/livekit.ts`, which encapsulates the backend request to mint a LiveKit access token.
 
 ## Backend
 
@@ -66,6 +73,10 @@ Create a trigger for the combined pipeline (or one for each service-specific `cl
 - `_LIVEKIT_HOST` – Public URL of your LiveKit server.
 - `_LIVEKIT_TOKEN_TTL` – Optional TTL in seconds.
 - `_LIVEKIT_API_KEY` / `_LIVEKIT_API_SECRET` – Secret resource names.
+
+## Architecture reference
+
+A deeper dive into the layering, request flow, and deployment steps is available in [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
 
 ## Development tips
 

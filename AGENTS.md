@@ -5,3 +5,4 @@
 - Write descriptive comments for complex logic but keep components lean and functional.
 - When adding environment variables, document them in the README and provide `.example` files where appropriate.
 - Formatting: use 2-space indentation for YAML and JSON, and follow Prettier defaults for frontend code.
+- Document system-level changes in `docs/ARCHITECTURE.md` alongside a brief README mention when the architecture evolves.
